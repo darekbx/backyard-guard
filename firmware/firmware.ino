@@ -7,14 +7,18 @@
 #include "credentials.h"
 #include <WiFi.h>
 #include <FirebaseESP32.h>
+#include <DallasTemperature.h>
 #include <addons/TokenHelper.h>
 #include <addons/RTDBHelper.h>
+#include "OneWire.h"
+#include "time.h"
 
 #define DEBUG true
 #define LED_ENABLED true
 #define THREAD_DELAY 50
 #define PIN_LEDATOM 27
 #define PIN_PIR 32
+#define ONE_WIRE_BUS 21
 
 #if LED_ENABLED
 #include <M5Atom.h>
@@ -22,10 +26,14 @@
 
 bool wifiConnected = false;
 unsigned long sendDataPrevMillis = 0;
+unsigned long tempReadPrevMillis = 0;
 
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
+
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
 
 void setup() {      
   #if LED_ENABLED
@@ -84,6 +92,7 @@ void setup() {
   Firebase.begin(&config, &auth); 
   Firebase.setDoubleDigits(5);
 
+  sensors.begin();
 
   wifiConnected = true;
 }
@@ -97,6 +106,25 @@ void loop() {
       #endif
       String dbRef = "/data/last-active";
       Firebase.setTimestamp(fbdo, dbRef);
+    }
+
+    // Report temperature
+    if (millis() - tempReadPrevMillis > 5 * 60 * 1000  || tempReadPrevMillis == 0) {
+      tempReadPrevMillis = millis();
+      sensors.requestTemperatures();
+
+      float tmp = sensors.getTempCByIndex(0);
+      Serial.print("Temperature: ");
+      Serial.println(tmp);
+      FirebaseJson json;
+      json.add("timestamp", getTime());
+      json.add("temperature", tmp);
+
+      String dbRef = "/data/temperature";
+      Firebase.pushJSON(fbdo, dbRef, json);
+      #if DEBUG
+        Serial.println("Temp sent");
+      #endif
     }
 
     // Detected movement
@@ -144,4 +172,15 @@ void loop() {
   }
   
   delay(THREAD_DELAY);
+}
+
+unsigned long getTime() {
+  time_t now;
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    //Serial.println("Failed to obtain time");
+    return(0);
+  }
+  time(&now);
+  return now;
 }

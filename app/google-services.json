@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "265352273669",
+    "firebase_url": "https://backyard-guard-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "backyard-guard",
+    "storage_bucket": "backyard-guard.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:265352273669:android:ee8455352c8c4cb593a16c",
+        "android_client_info": {
+          "package_name": "com.darekbx.backyardguard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIoC__Tx1IVQCaNqQzHD75UKe5I_8eU3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
